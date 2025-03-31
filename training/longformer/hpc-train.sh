@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --gpus-per-node=2 ## nb of GPU(s)
+#SBATCH --gpus-per-node=1 ## nb of GPU(s)
 
 #SBATCH --mem=8192 ##Memory I want to use in MB
 
