@@ -39,7 +39,7 @@ python /mnt/home/groseclb/CIS678-Project/training/longformer/main.py \
   --eval_steps 1000 \
   --overwrite_output_dir \
   --gradient_accumulation_steps 8 \
-	--fp16
+	--fp16 \
   --output_dir $out_dir 2>&1 | tee $out_dir/log.train.$time
 
 deactivate
