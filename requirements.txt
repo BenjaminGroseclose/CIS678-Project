@@ -53,3 +53,5 @@ yarl==1.9.3
 autopep8
 ipykernel
 reindent
+pytorch
+torch-summary

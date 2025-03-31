@@ -45,6 +45,41 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
 
+import torch
+import torchsummary
+import torch.nn as nn
+from transformers import PreTrainedModel, PretrainedConfig
+
+
+class MyModelConfig(PretrainedConfig):
+    def __init__(self, hidden_size=256, num_labels=2, **kwargs):
+        super().__init__(**kwargs)
+        self.hidden_size = hidden_size
+        self.num_labels = num_labels
+
+
+class MyModel(PreTrainedModel):
+    config_class = MyModelConfig
+
+    def __init__(self, vocab_size, config):
+        super().__init__(config)
+        self.embedding = nn.Embedding(vocab_size, config.hidden_size)
+        self.lstm = nn.LSTM(config.hidden_size,
+                            config.hidden_size, batch_first=True)
+        self.classifier = nn.Linear(config.hidden_size, config.num_labels)
+
+    def forward(self, input_ids, attention_mask=None, labels=None):
+        embeddings = self.embedding(input_ids)
+        output, _ = self.lstm(embeddings)
+        logits = self.classifier(output[:, -1, :])
+
+        loss = None
+        if labels is not None:
+            loss_fn = nn.CrossEntropyLoss()
+            loss = loss_fn(logits, labels)
+
+        return {"loss": loss, "logits": logits} if loss is not None else {"logits": logits}
+
 
 os.environ['CURL_CA_BUNDLE'] = ''
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -346,14 +381,15 @@ def main():
     #
     # In distributed training, the .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
-    config = AutoConfig.from_pretrained(
-        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
-        num_labels=num_labels,
-        finetuning_task=data_args.task_name,
-        cache_dir=model_args.cache_dir,
-        revision=model_args.model_revision,
-        use_auth_token=True if model_args.use_auth_token else None,
-    )
+    # config = AutoConfig.from_pretrained(
+    #     model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+    #     num_labels=num_labels,
+    #     finetuning_task=data_args.task_name,
+    #     cache_dir=model_args.cache_dir,
+    #     revision=model_args.model_revision,
+    #     use_auth_token=True if model_args.use_auth_token else None,
+    # )
+
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -361,21 +397,29 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    if not data_args.from_scratch:
-        model = AutoModelForSequenceClassification.from_pretrained(
-            model_args.model_name_or_path,
-            from_tf=bool(".ckpt" in model_args.model_name_or_path),
-            config=config,
-            cache_dir=model_args.cache_dir,
-            revision=model_args.model_revision,
-            use_auth_token=True if model_args.use_auth_token else None,
-            ignore_mismatched_sizes=True,
-        )
-    else:
-        model = AutoModelForSequenceClassification.from_config(
-            config=config,
-            # ignore_mismatched_sizes=True,
-        )
+    # if not data_args.from_scratch:
+    #     model = AutoModelForSequenceClassification.from_pretrained(
+    #         model_args.model_name_or_path,
+    #         from_tf=bool(".ckpt" in model_args.model_name_or_path),
+    #         config=config,
+    #         cache_dir=model_args.cache_dir,
+    #         revision=model_args.model_revision,
+    #         use_auth_token=True if model_args.use_auth_token else None,
+    #         ignore_mismatched_sizes=True,
+    #     )
+    #     print('from_scratch')
+    # else:
+    #     model = AutoModelForSequenceClassification.from_config(
+    #         config=config,
+    #         # ignore_mismatched_sizes=True,
+    #     )
+    #     print('Not from_scratch')
+
+    config = MyModelConfig(num_labels=num_labels)
+    model = MyModel(tokenizer.vocab_size, config)
+
+    torchsummary.summary(model, input_size=(3, 16, 16))
+
     # Preprocessing the raw_datasets
     sentence1_key, sentence2_key = "text", None
     # if data_args.task_name is not None:
