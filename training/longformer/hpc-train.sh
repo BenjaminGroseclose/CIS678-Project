@@ -4,7 +4,7 @@
 
 #SBATCH --mem=8192 ##Memory I want to use in MB
 
-#SBATCH --time=48:25:00 ## time it will take to complete job
+#SBATCH --time=20:25:00 ## time it will take to complete job
 
 #SBATCH --partition=class ##Partition I want to use
 
