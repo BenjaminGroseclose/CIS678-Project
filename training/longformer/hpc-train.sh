@@ -4,7 +4,7 @@
 
 #SBATCH --mem=8192 ##Memory I want to use in MB
 
-#SBATCH --time=20:25:00 ## time it will take to complete job
+#SBATCH --time=48:25:00 ## time it will take to complete job
 
 #SBATCH --partition=class ##Partition I want to use
 
@@ -16,7 +16,7 @@
 
 plm_dir="allenai/longformer-base-4096"
 seed=42629309
-data_path="../data/cross_domains_cross_models"
+data_path="../data/domain_specific_cross_models/sci_gen"
 train_file="$data_path/train.csv"
 valid_file="$data_path/valid.csv"
 out_dir="./output_samples_${seed}_lfbase"
