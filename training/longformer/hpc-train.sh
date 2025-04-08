@@ -10,13 +10,13 @@
 
 #SBATCH --ntasks=1 ##Number of task
 
-#SBATCH --job-name=text-detection-yelp ## Name of job
+#SBATCH --job-name=text-detection-squad ## Name of job
 
-#SBATCH --output=text-detection-yelp-.%j.out ##Name of output file
+#SBATCH --output=text-detection-squad-.%j.out ##Name of output file
 
 plm_dir="allenai/longformer-base-4096"
 seed=42629309
-data_path="../data/domain_specific_cross_models/yelp"
+data_path="../data/domain_specific_cross_models/squad"
 train_file="$data_path/train.csv"
 valid_file="$data_path/valid.csv"
 out_dir="./output_samples_${seed}_lfbase"
